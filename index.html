@@ -361,7 +361,7 @@ async function makePdf(pages) {
     page.drawLine({start:{x:linkX*scale,y:page.getHeight()-(linkY+2)*scale},end:{x:(linkX+linkWidth)*scale,y:page.getHeight()-(linkY+2)*scale},thickness:0.7*scale,color:rgb(0,0.2,0.8)});
     if(index===1) {
       page.drawText('Documento preenchido em',{x:72*scale,y:page.getHeight()-1083*scale,size:13*scale,font,color:rgb(0.18,0.18,0.18)});
-      page.drawText('por Fábio Ripardo.',{x:72*scale,y:page.getHeight()-1128*scale,size:13*scale,font,color:rgb(0.18,0.18,0.18)});
+      page.drawText('Aplicativo idealizado por Fábio Ripardo',{x:72*scale,y:page.getHeight()-1128*scale,size:13*scale,font,color:rgb(0.18,0.18,0.18)});
       page.drawText('Acesse',{x:72*scale,y:page.getHeight()-1347*scale,size:14*scale,font:boldFont,color:rgb(0.18,0.18,0.18)});
       page.drawRectangle({x:footerQrBox.x*scale,y:page.getHeight()-(footerQrBox.y+footerQrBox.size)*scale,width:footerQrBox.size*scale,height:footerQrBox.size*scale,color:rgb(1,1,1)});
       for(const r of qrRects())page.drawRectangle({x:r.x*scale,y:page.getHeight()-(r.y+r.h)*scale,width:r.w*scale,height:r.h*scale,color:rgb(0,0,0)});
@@ -481,7 +481,7 @@ function attachCnesMenu(id,wrapper,control,err) {
 }
 
 function applyRules(data) {
-  const disabled=new Set(),readonly=new Set(),required=new Set(['nome','documento','mae','raca','escolar','nasc','uf_res','mun_res','logradouro','numero','inv_nome','inv_func']),errors={};
+  const disabled=new Set(),readonly=new Set(),required=new Set(['nome','documento','mae','raca','escolar','nasc','uf_res','mun_res','logradouro','numero','zona','inv_nome','inv_func']),errors={};
   const clear=id=>{disabled.add(id);data[id]='';};
   for(const field of fields) if(field.kind==='text'||field.kind==='textarea') data[field.id]=formatInput(field.kind,data[field.id]||'');
   for(const field of fields) if(field.step===3 && !['herb','esp_out','intervalo','doses_ant'].includes(field.id)) required.add(field.id);
@@ -850,7 +850,7 @@ function makePaper(index){
   for(const [key,value] of Object.entries({x:linkX,y:linkY,'font-size':14,'font-weight':'bold','text-decoration':'underline','font-family':'Arial, Helvetica, sans-serif',fill:'#0033cc'}))credit.setAttribute(key,value);
   credit.textContent=sourceUrl;creditLink.append(credit);paper.append(creditLink);
   if(index===1) {
-    for(const [txt,y,size] of [['Documento preenchido em',1083,13],['por Fábio Ripardo.',1128,13],['Acesse',1347,14]]) {
+    for(const [txt,y,size] of [['Documento preenchido em',1083,13],['Aplicativo idealizado por Fábio Ripardo',1128,13],['Acesse',1347,14]]) {
       const text=document.createElementNS(SVG_NS,'text');
       for(const [key,value] of Object.entries({x:72,y,'font-size':size,'font-family':'Arial, Helvetica, sans-serif',fill:'#2e2e2e'}))text.setAttribute(key,value);
       text.textContent=txt;paper.append(text);
