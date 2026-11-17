@@ -483,6 +483,7 @@ function attachCnesMenu(id,wrapper,control,err) {
 function applyRules(data) {
   const disabled=new Set(),readonly=new Set(),required=new Set(['nome','documento','mae','raca','escolar','nasc','uf_res','mun_res','logradouro','numero','zona','inv_nome','inv_func']),errors={};
   const clear=id=>{disabled.add(id);data[id]='';};
+  for(const field of fields) if(field.step===0 && field.id!=='cnes_notif')required.add(field.id);
   for(const field of fields) if(field.kind==='text'||field.kind==='textarea') data[field.id]=formatInput(field.kind,data[field.id]||'');
   for(const field of fields) if(field.step===3 && !['herb','esp_out','intervalo','doses_ant'].includes(field.id)) required.add(field.id);
   if(data._numeroSN==='1') {data.numero='SN';disabled.add('numero');}
@@ -532,6 +533,7 @@ function applyRules(data) {
       if(data[codeKey]&&data[codeKey].length!==7)errors[codeKey]='Informe os 7 dígitos do CNES ou deixe o campo em branco.';
     } else {data[codeKey]=selected?selected[1]:'';readonly.add(codeKey);}
     data[modeKey]=manual;
+    if(!reference && selected)required.add(codeKey);
     if(!manual&&(!city||!cnesCache.has(city)||!(cnesCache.get(city)||[]).length))disabled.add(key);
   }
   const notifier=cnesSelected(data);
@@ -758,7 +760,6 @@ for(const field of fields){
     control.addEventListener('change',()=>{values[id]=control.value;search.value='';refreshMenu();sync();});
   }
   if(['un_notif','ubs_ref'].includes(id))attachCnesMenu(id,wrapper,control,err);
-  if(id==='un_notif'||id==='ubs_ref')attachCnesMenu(id,wrapper,control,err);
   if(id==='obs') {
     const notice=make('div','observations-notice');notice.id='obs-notice';notice.hidden=true;
     wrapper.insertBefore(notice,control);
