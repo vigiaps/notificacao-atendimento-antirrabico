@@ -481,7 +481,7 @@ function attachCnesMenu(id,wrapper,control,err) {
 }
 
 function applyRules(data) {
-  const disabled=new Set(),readonly=new Set(),required=new Set(['nome','documento','mae','raca','escolar','nasc','uf_res','mun_res','logradouro','numero','zona','inv_nome','inv_func']),errors={};
+  const disabled=new Set(),readonly=new Set(),required=new Set(['nome','documento','mae','raca','escolar','nasc','uf_res','mun_res','logradouro','numero','zona','trat','inv_nome','inv_func']),errors={};
   const clear=id=>{disabled.add(id);data[id]='';};
   for(const field of fields) if(field.step===0 && !['num','cnes_notif'].includes(field.id))required.add(field.id);
   for(const field of fields) if(field.kind==='text'||field.kind==='textarea') data[field.id]=formatInput(field.kind,data[field.id]||'');
@@ -564,10 +564,16 @@ function applyRules(data) {
   const offsets=four?[0,3,7,14]:data.trat==='1'?[0,7]:[];
   const vaccineFields=['lab_v','lab_v_out','lote','dt_val','dose1','dose2','dose3','dose4','interrupcao','motivo','busca','evento_v'];
   let scheduleNote='';
+  if(!vaccine) data._vacinaIndisponivel='';
   if(!vaccine) [...vaccineFields,'ind_soro','peso','qtd','tipo_soro','infilt','infilt_tipo','lab_s','lab_s_out','partida','evento_s'].forEach(clear);
   else {
-    ['lab_v','lote','dt_val','dose1'].forEach(id=>required.add(id));
-    if(data.lab_v!=='4') clear('lab_v_out');else required.add('lab_v_out');
+    required.add('dose1');
+    if(data._vacinaIndisponivel==='1') {
+      ['lab_v','lab_v_out','lote','dt_val'].forEach(clear);
+    } else {
+      ['lab_v','lote','dt_val'].forEach(id=>required.add(id));
+      if(data.lab_v!=='4') clear('lab_v_out');else required.add('lab_v_out');
+    }
     if(offsets.length) {
       const first=parseCalendar(data.dose1);
       for(let i=1;i<4;i++) {
@@ -583,9 +589,8 @@ function applyRules(data) {
     }
   }
   if(data.trat==='6') {
-    data.ind_soro='1';readonly.add('ind_soro');
+    data.ind_soro='1';readonly.add('ind_soro');required.add('peso');
   }
-  if(data.ind_soro==='1') required.add('peso');
   if(data.peso && Number(data.peso.replace(',','.'))<=0) errors.peso='Informe um peso maior que zero.';
   for(const id of required) if(!(data[id]||'').trim()) errors[id]='Campo obrigatório.';
   return {disabled,readonly,required,errors,scheduleNote,reference:refText,vaccine,four,manualNewborn};
@@ -647,6 +652,11 @@ function updateRuleControls(rules) {
     if(control.tagName!=='SELECT') control.readOnly=rules.readonly.has(field.id);
     if(field.id==='idade_tipo') for(const option of control.options) option.disabled=rules.manualNewborn && !['','1','2'].includes(option.value);
     wrapper.classList.toggle('is-required',rules.required.has(field.id));
+    if(field.id==='lab_v') {
+      const checkbox=wrapper.querySelector('.vaccine-unavailable-checkbox');
+      checkbox.checked=values._vacinaIndisponivel==='1';
+      checkbox.disabled=!rules.vaccine;
+    }
     if(field.id==='numero') wrapper.querySelector('.sn-checkbox').checked=values._numeroSN==='1';
     if(field.id==='ocup') {
       const search=wrapper.querySelector('.occupation-search');
@@ -765,6 +775,17 @@ for(const field of fields){
     const notice=make('div','observations-notice');notice.id='obs-notice';notice.hidden=true;
     wrapper.insertBefore(notice,control);
     const counter=make('span','hint');counter.id='obs-counter';counter.setAttribute('aria-live','polite');wrapper.append(counter);
+  }
+  if(id==='lab_v') {
+    const label=make('label','inline-choice');
+    const checkbox=make('input','vaccine-unavailable-checkbox');
+    checkbox.type='checkbox';checkbox.id='vacina-indisponivel';
+    label.append(checkbox,document.createTextNode('Vacina indisponível no serviço ou neste momento'));
+    wrapper.insertBefore(label,control);
+    checkbox.addEventListener('change',()=>{
+      values._vacinaIndisponivel=checkbox.checked?'1':'';
+      sync();
+    });
   }
   if(id==='numero') {
     const numberLine=make('div','number-line');
